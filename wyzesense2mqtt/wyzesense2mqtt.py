@@ -8,6 +8,7 @@ import logging.handlers
 import os
 import shutil
 import subprocess
+import time
 import yaml
 
 # Used for alternate MQTT connection method
@@ -25,6 +26,9 @@ SAMPLES_PATH = "samples"
 MAIN_CONFIG_FILE = "config.yaml"
 LOGGING_CONFIG_FILE = "logging.yaml"
 SENSORS_CONFIG_FILE = "sensors.yaml"
+
+# Set a connected flag to false for all mqtt clients
+mqtt.Client.connected_flag=False
 
 # Simplify mapping of device classes.
 # { **dict.fromkeys(['list', 'of', 'possible', 'identifiers'], 'device_class') }
@@ -124,7 +128,9 @@ def init_mqtt_client():
     # Connect to MQTT
     LOGGER.info(f"Connecting to MQTT host {CONFIG['mqtt_host']}")
     MQTT_CLIENT.connect_async(CONFIG['mqtt_host'], port=CONFIG['mqtt_port'], keepalive=CONFIG['mqtt_keepalive'])
-
+    
+    while not MQTT_CLIENT.connected_flag:
+        time.sleep(1)
     # Used for alternate MQTT connection method
     # MQTT_CLIENT.loop_start()
     # while (not MQTT_CLIENT.connected_flag):
@@ -341,6 +347,7 @@ def clear_topics(sensor_mac):
 def on_connect(MQTT_CLIENT, userdata, flags, rc):
     global CONFIG
     if rc == mqtt.MQTT_ERR_SUCCESS:
+        MQTT_CLIENT.connected_flag = True
         MQTT_CLIENT.subscribe(
             [(SCAN_TOPIC, CONFIG['mqtt_qos']),
              (REMOVE_TOPIC, CONFIG['mqtt_qos']),
@@ -357,6 +364,7 @@ def on_connect(MQTT_CLIENT, userdata, flags, rc):
 
 
 def on_disconnect(MQTT_CLIENT, userdata, rc):
+    MQTT_CLIENT.connected_flag = False
     MQTT_CLIENT.message_callback_remove(SCAN_TOPIC)
     MQTT_CLIENT.message_callback_remove(REMOVE_TOPIC)
     MQTT_CLIENT.message_callback_remove(RELOAD_TOPIC)
