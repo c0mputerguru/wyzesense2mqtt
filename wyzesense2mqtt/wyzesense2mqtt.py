@@ -219,13 +219,8 @@ def valid_sensor_mac(sensor_mac):
     if ((len(str(sensor_mac)) == 8) and (sensor_mac not in invalid_mac_list)):
         return True
     else:
-        LOGGER.warning(f"Unpairing bad MAC: {sensor_mac}")
-        try:
-            WYZESENSE_DONGLE.Delete(sensor_mac)
-            clear_topics(sensor_mac)
-        except TimeoutError:
-            pass
-        return False
+        LOGGER.warning(f"Found bad MAC: {sensor_mac} but not deleting.")
+        return True
 
 
 # Add sensor to config
