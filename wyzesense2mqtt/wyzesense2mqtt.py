@@ -380,6 +380,8 @@ def on_message_scan(MQTT_CLIENT, userdata, msg):
         LOGGER.debug(f"Scan result: {result}")
         if (result):
             sensor_mac, sensor_type, sensor_version = result
+            if (sensor_mac in ("\0\0\0\0\0\0\0\0", "\x00\x00\x00\x00\x00\x00\x00\x00")):
+                sensor_mac = "00000000"
             if (valid_sensor_mac(sensor_mac)):
                 if (SENSORS.get(sensor_mac)) is None:
                     add_sensor_to_config(
@@ -405,6 +407,8 @@ def on_message_remove(MQTT_CLIENT, userdata, msg):
     if (valid_sensor_mac(sensor_mac)):
         try:
             WYZESENSE_DONGLE.Delete(sensor_mac)
+            if (sensor_mac in ("\0\0\0\0\0\0\0\0", "\x00\x00\x00\x00\x00\x00\x00\x00")):
+                sensor_mac = "00000000"
             clear_topics(sensor_mac)
             delete_sensor_from_config(sensor_mac)
         except TimeoutError:
@@ -425,6 +429,9 @@ def on_event(WYZESENSE_DONGLE, event):
 
     # List of states that correlate to ON.
     STATES_ON = ['active', 'open', 'wet']
+
+    if (event.MAC in ("\0\0\0\0\0\0\0\0", "\x00\x00\x00\x00\x00\x00\x00\x00")):
+        event.MAC = "00000000"
 
     if (valid_sensor_mac(event.MAC)):
         if (event.Type == "alarm") or (event.Type == "status"):
