@@ -288,19 +288,19 @@ def send_discovery_topics(sensor_mac):
 
     entity_payloads = {
         'state': {
-            'name': sensor_name,
+            'name': sensor_class,
             'dev_cla': sensor_class,
             'pl_on': "1",
             'pl_off': "0",
             'json_attr_t': f"{CONFIG['self_topic_root']}/{sensor_mac}"
         },
         'signal_strength': {
-            'name': f"{sensor_name} Signal Strength",
+            'name': f"Signal Strength",
             'dev_cla': "signal_strength",
             'unit_of_meas': "dBm"
         },
         'battery': {
-            'name': f"{sensor_name} Battery",
+            'name': f"Battery",
             'dev_cla': "battery",
             'unit_of_meas': "%"
         }
