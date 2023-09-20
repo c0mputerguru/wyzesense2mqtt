@@ -11,8 +11,8 @@ import subprocess
 import yaml
 
 # Used for alternate MQTT connection method
-# import signal
-# import time
+import signal
+import time
 
 import paho.mqtt.client as mqtt
 import wyzesense
@@ -110,7 +110,7 @@ def init_config():
 def init_mqtt_client():
     global MQTT_CLIENT, CONFIG, LOGGER
     # Used for alternate MQTT connection method
-    # mqtt.Client.connected_flag = False
+    mqtt.Client.connected_flag = False
 
     # Configure MQTT Client
     MQTT_CLIENT = mqtt.Client(client_id=CONFIG['mqtt_client_id'], clean_session=CONFIG['mqtt_clean_session'])
@@ -126,9 +126,9 @@ def init_mqtt_client():
     MQTT_CLIENT.connect_async(CONFIG['mqtt_host'], port=CONFIG['mqtt_port'], keepalive=CONFIG['mqtt_keepalive'])
 
     # Used for alternate MQTT connection method
-    # MQTT_CLIENT.loop_start()
-    # while (not MQTT_CLIENT.connected_flag):
-    #     time.sleep(1)
+    MQTT_CLIENT.loop_start()
+    while (not MQTT_CLIENT.connected_flag):
+        time.sleep(1)
 
 
 # Retry forever on IO Error
@@ -350,7 +350,7 @@ def on_connect(MQTT_CLIENT, userdata, flags, rc):
         MQTT_CLIENT.message_callback_add(REMOVE_TOPIC, on_message_remove)
         MQTT_CLIENT.message_callback_add(RELOAD_TOPIC, on_message_reload)
         # Used for alternate MQTT connection method
-        # MQTT_CLIENT.connected_flag = True
+        MQTT_CLIENT.connected_flag = True
         LOGGER.info(f"Connected to MQTT: {mqtt.error_string(rc)}")
     else:
         LOGGER.warning(f"Connection to MQTT failed: {mqtt.error_string(rc)}")
@@ -361,7 +361,7 @@ def on_disconnect(MQTT_CLIENT, userdata, rc):
     MQTT_CLIENT.message_callback_remove(REMOVE_TOPIC)
     MQTT_CLIENT.message_callback_remove(RELOAD_TOPIC)
     # Used for alternate MQTT connection method
-    # MQTT_CLIENT.connected_flag = False
+    MQTT_CLIENT.connected_flag = False
     LOGGER.info(f"Disconnected from MQTT: {mqtt.error_string(rc)}")
 
 
@@ -505,12 +505,12 @@ if __name__ == "__main__":
             MQTT_CLIENT.loop_forever(retry_first_connection=False)
 
             # Used for alternate MQTT connection method
-            # signal.pause()
+            signal.pause()
     except KeyboardInterrupt:
         pass
     finally:
         # Used with alternate MQTT connection method
-        # MQTT_CLIENT.loop_stop()
+        MQTT_CLIENT.loop_stop()
 
         MQTT_CLIENT.disconnect()
         WYZESENSE_DONGLE.Stop()
